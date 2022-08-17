@@ -25,7 +25,7 @@ const sumWeights = weights => {
  * @param {number[]} weights input weights
  * @param {function(number): number} random random natural integer generator
  * @returns {number} random weight
- * @example randomWeight({ 1, 2, 3 }, max => Math.floor(Math.random() * max)) // 5
+ * @example randomWeight({ 1, 2, 3 }, randomNatural) // 5
  */
 const randomWeight = (weights, random) => random(sumWeights(weights))
 
@@ -48,7 +48,7 @@ const weightIndex = (weight, weights) => {
  * @param {number[]} weights input weights
  * @param {function(number): number} random random natural integer generator
  * @returns {number} random index
- * @example randomIndex({ 1, 2, 3 }, max => Math.floor(Math.random() * max)) // 2
+ * @example randomIndex({ 1, 2, 3 }, randomNatural) // 2
  */
 const randomIndex = (weights, random) => weightIndex(randomWeight(weights, random), weights)
 
@@ -58,9 +58,25 @@ const randomIndex = (weights, random) => weightIndex(randomWeight(weights, rando
  * @param {number[]} weights input weights
  * @param {function(number): number} random random natural integer generator
  * @returns {any} random item
- * @example randomItem({ 'slot', 'js' }, { 1, 2 }, max => Math.floor(Math.random() * max)) // 'slot'
+ * @example randomItem({ 'slot', 'js' }, { 1, 2 }, randomNatural) // 'slot'
  */
 const randomItem = (items, weights, random) => items[randomIndex(weights, random)]
+
+/**
+ * generates random reel positins
+ * @param {any[]} reels input reels
+ * @param {function(number): number} random random natural integer generator
+ * @returns {number} random positions
+ * @example randomPositions({ 0, 1 }, { 2, 3, 4 }, randomNatural) // { 1, 2 }
+ */
+const randomPositions = (reels, random) => reels.map(r => random(r.length))
+
+/**
+ * 
+ * @param {number} value 
+ * @param {Map<number, number>} counter 
+ */
+const incrementCount = (value, counter) => counter.set(value, (counter.get(value) ?? 0) + 1)
 
 const reels = [[
     [ 9, 2, 3, 4, 5 ],
@@ -76,5 +92,13 @@ const reels = [[
 
 const weights = [ 4, 5 ]
 
-const item = randomItem(reels, weights, randomNatural)
-console.log(item)
+const counter = new Map()
+
+console.log('start')
+for(let i = 0; i < 1_000_000; i++) {
+    const r = randomItem(reels, weights, randomNatural)
+    const p = randomPositions(r, randomNatural)
+    const n = p.reduce((a, c, i) => a + r[i][c], 0)
+    incrementCount(n, counter)
+}
+console.log(counter)
