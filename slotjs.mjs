@@ -10,7 +10,7 @@ const randomNatural = max => Math.floor(Math.random() * max)
  * returns the sum input weights
  * @param {number[]} weights input weights
  * @returns {number} weights sum
- * @example sumWeights({ 1, 2, 3}) // 6
+ * @example sumWeights({ 1, 2, 3 }) // 6
  */
 const sumWeights = weights => {
     let sum = 0
@@ -34,7 +34,7 @@ const randomWeight = (weights, random) => random(sumWeights(weights))
  * @param {number} weight index of this weight
  * @param {number[]} weights input weights
  * @returns {number} weight index
- * @example weightIndex(4, {1, 2, 3}) // 2
+ * @example weightIndex(4, { 1, 2, 3 }) // 2
  */
 const weightIndex = (weight, weights) => {
     for (let i = 0, w = 0; i < weights.length; i++) {
@@ -63,16 +63,53 @@ const randomIndex = (weights, random) => weightIndex(randomWeight(weights, rando
 const randomItem = (items, weights, random) => items[randomIndex(weights, random)]
 
 /**
- * generates random reel positins
- * @param {any[]} reels input reels
- * @param {function(number): number} random random natural integer generator
- * @returns {number} random positions
- * @example randomPositions({ 0, 1 }, { 2, 3, 4 }, randomNatural) // { 1, 2 }
+ * returns '{@link size}' number of symbols incrementing from {@link position} on {@link reel}
+ * @param {number[]} reel input reel
+ * @param {number} size return symbols count
+ * @param {number} position start position
+ * @returns {number[]} reel symbols
+ * @example reelSymbols({ 1, 2, 3 }, 1, 7) // { 2, 3, 1, 2, 3, 1, 2 }
  */
-const randomPositions = (reels, random) => reels.map(r => random(r.length))
+const reelSymbols = (reel, size, position) => {
+    const symbols = Array(size)
+    for (let i = 0, p = position; i < size; i++, p++) {
+        if (p == reel.length) p = 0
+        symbols[i] = reel[p]
+    }
+    return symbols
+}
 
 /**
- * 
+ * returns a random reel position
+ * @param {number[]} reel input reel
+ * @param {function(number): number} random random natural integer generator
+ * @returns {number} random reel position
+ * @example randomPosition({ 1, 2, 3 }, randomNatural) // 2
+ */
+const randomPosition = (reel, random) => random(reel.length)
+
+/**
+ * returns '{@link size}' number of symbols from a random position on {@link reel}
+ * @param {number[]} reel input reel 
+ * @param {number} size return symbols count
+ * @param {function(number): number} random random natural integer generator
+ * @returns {number[]} random reel spin symbols
+ * @example spinReel({ 1, 2, 3 }, 5, randomNatural) // { 3, 1, 2, 3, 1 }
+ */
+const spinReel = (reel, size, random) => reelSymbols(reel, size, randomPosition(reel, random))
+
+/**
+ * returns corresponding '{@link layout}' number of symbols from a random position on each reel in {@link reels}
+ * @param {number[][]} reels input reelset
+ * @param {number[]} layout input layout
+ * @param {function(number): number} random random natural integer generator
+ * @returns {number[][]} random reelset spin symbols
+ * @example todo
+ */
+const spinReelSet = (reels, layout, random) => reels.map((r, i) => spinReel(r, layout[i], random))
+
+/**
+ * todo
  * @param {number} value 
  * @param {Map<number, number>} counter 
  */
@@ -92,13 +129,15 @@ const reels = [[
 
 const weights = [ 4, 5 ]
 
+const layout = [ 3, 3, 3, 3 ]
+
 const counter = new Map()
 
 console.log('start')
-for(let i = 0; i < 1_000_000; i++) {
+for(let i = 0; i < 10_000_000; i++) {
     const r = randomItem(reels, weights, randomNatural)
-    const p = randomPositions(r, randomNatural)
-    const n = p.reduce((a, c, i) => a + r[i][c], 0)
+    const s = spinReelSet(r, layout, randomNatural)
+    const n = s[0][0] + s[1][1] + s[2][2] 
     incrementCount(n, counter)
 }
 console.log(counter)
